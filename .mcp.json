@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "gsheets": {
+      "command": "uvx",
+      "args": ["mcp-google-sheets@latest"],
+      "env": {
+        "SERVICE_ACCOUNT_PATH": "${SERVICE_ACCOUNT_PATH}",
+        "DRIVE_FOLDER_ID": "${DRIVE_FOLDER_ID}"
+      }
+    }
+  }
+}

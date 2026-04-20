@@ -1,0 +1,12 @@
+# Local Claude Code overrides (contains credential paths/secrets)
+.claude/settings.local.json
+
+# Google service account keys — NEVER commit
+service-account*.json
+*-service-account.json
+gcp-key*.json
+credentials.json
+
+# General
+.DS_Store
+*.log
