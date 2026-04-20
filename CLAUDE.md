@@ -111,24 +111,27 @@ CLAUDE.md (司令塔)
 │
 ├─ ④ 運用
 │    ├─ training-planner     週次/日次メニュー生成ハブ
-│    └─ meet-manager         大会エントリー・テーパー
+│    ├─ meet-manager         大会エントリー・テーパー(未実装)
+│    └─ log-keeper           Sheets読み書き・履歴管理・コンテキスト制御
 │
 └─ ⑤ 分析
-     └─ performance-analyst  TT進捗・FINA Points・週次レビュー
+     └─ performance-analyst  TT進捗・FINA Points・週次/月次レビュー・示唆生成
 ```
 
-### 構築優先順位
+### 構築優先順位・実装状態
 
-| # | スキル | 理由 |
-|---|---|---|
-| 1 | **injury-guardian** | 肩痛の安全な扱いが最優先 |
-| 2 | **stroke-technician** | **本人の最大レバレッジ要望(モダンフォーム再構築)** |
-| 3 | **mobility-therapist** | 肩後方関節包改善はフォーム改善の前提 |
-| 4 | **training-planner** | 週1回60分最大化のハブ |
-| 5 | **strength-coach** | 自重・ゼロスタートの段階設計 |
-| 6 | **video-analyst** | モダン理論との対比分析(動画準備後) |
-| 7 | **meet-manager** | 大会決定後に起動 |
-| 8-12 | 残り5スキル | 月1個ペースで追加 |
+| # | スキル | 状態 | 理由 |
+|---|---|---|---|
+| 1 | **injury-guardian** | ✅ 実装済 | 肩痛の安全な扱いが最優先 |
+| 2 | **stroke-technician** | ✅ 実装済 | **本人の最大レバレッジ要望(モダンフォーム再構築)** |
+| 3 | **mobility-therapist** | ✅ 実装済 | 肩後方関節包改善はフォーム改善の前提 |
+| 4 | **training-planner** | ✅ 実装済 | 週1回60分最大化のハブ |
+| 5 | **strength-coach** | ✅ 実装済 | 自重・ゼロスタートの段階設計 |
+| 6 | **log-keeper** | ✅ 実装済 | Sheets 書き込み・コンテキスト制御の基盤 |
+| 7 | **performance-analyst** | ✅ 実装済 | 履歴から現状評価・示唆生成 |
+| 8 | **video-analyst** | 未実装 | モダン理論との対比分析(動画準備後) |
+| 9 | **meet-manager** | 未実装 | 大会決定後に起動 |
+| 10-12 | 残り3スキル(race-strategist / nutrition-chef / recovery-specialist / mind-coach) | 未実装 | 月1個ペースで追加 |
 
 **ルール**: 一度に1スキルだけ作り、1〜2週間使って安定させてから次に進む。
 
@@ -146,8 +149,27 @@ CLAUDE.md (司令塔)
 | 「モダン平泳ぎのキック練習」 | **stroke-technician** | video-analyst |
 | 「プルアウトを練習したい」 | stroke-technician | — |
 | 「レースプランを作って」 | race-strategist | performance-analyst |
-| 「週の振り返り」 | performance-analyst | training-planner |
+| 「週の振り返り」 | performance-analyst | log-keeper |
 | 「どの大会に出るべき?」 | meet-manager | performance-analyst |
+| 「今日の練習を記録」 | **log-keeper** | — |
+| 「直近X回のセッションを見せて」 | log-keeper | — |
+| 「先月の練習総括」 | performance-analyst | log-keeper |
+| 「月次レビュー」 | performance-analyst | log-keeper |
+| 「TT推移を見せて」 | performance-analyst | log-keeper |
+| 「Phase B に移行していい?」 | performance-analyst | injury-guardian, stroke-technician |
+| 「違和感ログを追加」 | log-keeper | injury-guardian |
+
+---
+
+## コンテキスト管理原則
+
+Sheets連携でコンテキスト爆発を起こさないための原則:
+
+1. **log-keeper はデフォルトで直近30日のみ読む**(目標 <3000 トークン)。具体的には `sessions` 直近30日 + `injury-log` open行 + `season-plan` 全行 + `measurements` 直近3件。
+2. **全履歴参照は明示要求時のみ**: 「全履歴」「過去X ヶ月」「全部見せて」などの明示がない限り範囲拡張しない。
+3. **performance-analyst の分析も必要最小限のデータで判断**: 週次レビューなら7日分、月次レビューなら30日分+weekly-review 4-5週。サンプルを増やせば精度が上がるわけではなく、イシュー起点で選ぶ。
+4. **古い記録が必要なら monthly-review サマリを優先参照**: 生データ(`sessions`)を遡る前に、圧縮済の `monthly-review` → `weekly-review` の順で当たる。
+5. **書き込みは log-keeper 経由のみ**: performance-analyst はレビュー本体を生成するが、Sheets への追記は log-keeper に依頼する(責務分離)。
 
 ---
 
@@ -185,3 +207,4 @@ CLAUDE.md (司令塔)
 - 2026-04-18 初版作成
 - 2026-04-18 第2回: 主要種目を平泳ぎに確定
 - 2026-04-18 第3回: **3-17歳全国レベル・14年競技歴・1ヶ月前復帰・機器使用不可・モダンフォーム優先方針** を反映
+- 2026-04-20 **log-keeper / performance-analyst 追加**、コンテキスト管理原則セクション新設、スキル構成図を⑤分析・⑥運用に再編
