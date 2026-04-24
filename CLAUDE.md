@@ -112,11 +112,21 @@ CLAUDE.md (司令塔)
 ├─ ④ 運用
 │    ├─ training-planner     週次/日次メニュー生成ハブ
 │    ├─ meet-manager         大会エントリー・テーパー(未実装)
-│    └─ log-keeper           Sheets読み書き・履歴管理・コンテキスト制御
+│    └─ log-keeper           Notion読み書き・履歴管理・コンテキスト制御
 │
 └─ ⑤ 分析
-     └─ performance-analyst  TT進捗・FINA Points・週次/月次レビュー・示唆生成
+     ├─ performance-analyst  TT進捗・FINA Points・週次/月次レビュー・示唆生成
+     └─ memo-curator         Training DB メモ本文の分類・サマリ生成・反復パターン検出
 ```
+
+### データバックエンド
+
+**Notion(現行)** / Google Sheets(アーカイブ)
+
+- 真実源: Notion ワークスペース **Masters Swim Log**(親ページ + 3DB + 2ページ)
+- 構造仕様: `@docs/notion-architecture.md`
+- **Notion 操作は Windows Claude Code Desktop 環境でのみ可能**(Notion MCP 接続済)。Claude Code Remote(サンドボックス)は `api.notion.com` への egress 制限があるため直接操作不可
+- 既存 Google Sheets(`1cEP2_xigk6T_co866SACkp2ER4l3lKtqp4IjRS6bUv8`)は読取参照用のアーカイブとして保持
 
 ### 構築優先順位・実装状態
 
@@ -127,11 +137,12 @@ CLAUDE.md (司令塔)
 | 3 | **mobility-therapist** | ✅ 実装済 | 肩後方関節包改善はフォーム改善の前提 |
 | 4 | **training-planner** | ✅ 実装済 | 週1回60分最大化のハブ |
 | 5 | **strength-coach** | ✅ 実装済 | 自重・ゼロスタートの段階設計 |
-| 6 | **log-keeper** | ✅ 実装済 | Sheets 書き込み・コンテキスト制御の基盤 |
-| 7 | **performance-analyst** | ✅ 実装済 | 履歴から現状評価・示唆生成 |
-| 8 | **video-analyst** | 未実装 | モダン理論との対比分析(動画準備後) |
-| 9 | **meet-manager** | 未実装 | 大会決定後に起動 |
-| 10-12 | 残り3スキル(race-strategist / nutrition-chef / recovery-specialist / mind-coach) | 未実装 | 月1個ペースで追加 |
+| 6 | **log-keeper** | ✅ 実装済(Notion版) | Notion 書き込み・コンテキスト制御の基盤 |
+| 7 | **performance-analyst** | ✅ 実装済(Notion版) | 履歴から現状評価・示唆生成 |
+| 8 | **memo-curator** | ✅ 実装済(Notion版) | メモのクラスタリング・反復パターン検出 |
+| 9 | **video-analyst** | 未実装 | モダン理論との対比分析(動画準備後) |
+| 10 | **meet-manager** | 未実装 | 大会決定後に起動 |
+| 11-13 | 残り3スキル(race-strategist / nutrition-chef / recovery-specialist / mind-coach) | 未実装 | 月1個ペースで追加 |
 
 **ルール**: 一度に1スキルだけ作り、1〜2週間使って安定させてから次に進む。
 
@@ -158,6 +169,9 @@ CLAUDE.md (司令塔)
 | 「TT推移を見せて」 | performance-analyst | log-keeper |
 | 「Phase B に移行していい?」 | performance-analyst | injury-guardian, stroke-technician |
 | 「違和感ログを追加」 | log-keeper | injury-guardian |
+| 「メモサマリ作って」 | **memo-curator** | log-keeper |
+| 「メモを振り返り」 | memo-curator | log-keeper |
+| 「反復パターン抽出」 | memo-curator | performance-analyst |
 
 ---
 
@@ -208,3 +222,4 @@ Sheets連携でコンテキスト爆発を起こさないための原則:
 - 2026-04-18 第2回: 主要種目を平泳ぎに確定
 - 2026-04-18 第3回: **3-17歳全国レベル・14年競技歴・1ヶ月前復帰・機器使用不可・モダンフォーム優先方針** を反映
 - 2026-04-20 **log-keeper / performance-analyst 追加**、コンテキスト管理原則セクション新設、スキル構成図を⑤分析・⑥運用に再編
+- 2026-04-24 **データバックエンドを Notion に全面移行**、`memo-curator` 新規追加、log-keeper / performance-analyst を Notion 版にリファクタ。Notion 操作は Windows Claude Code Desktop 限定
