@@ -1,9 +1,11 @@
 # テストフレームワーク設計書
 
 **対象**: LINE LIFF / LINE ミニアプリ(複数アプリで使い回す**汎用**フレームワーク)
-**バージョン**: v0.2(設計フェーズ・未決事項解消)
+**バージョン**: v0.3(設計フェーズ・Excel スキーマ確定)
 **作成日**: 2026-04-28
-**更新**: 2026-04-28 ユーザー回答反映(汎用化、Excel 一元化、GitHub Actions、運用言語=日本語)
+**更新**:
+- 2026-04-28 v0.2: 4 主要未決事項解消(汎用化、Excel 一元化、GitHub Actions、運用言語=日本語)
+- 2026-04-28 v0.3: Excel テンプレ取り込み済み、スキーマ確定(`docs/excel-schema.md`)、日本語版テンプレ `test-book-template-ja.xlsx` 生成
 
 ---
 
@@ -190,15 +192,16 @@
 
 ### 3.3 ロール間データ受け渡し形式
 
-**Excel 1 ファイル一元管理**:同一 Excel ファイル内に複数シートを持ち、ケース/結果/バグを束ねる(テンプレート受領後に確定)。
+**Excel 1 ファイル一元管理**:`templates/test-book-template-ja.xlsx` をプロジェクトごとにコピーし、`テストケース` / `バグレポート` の 2 シートで全工程を完結させる。スキーマ詳細は `@docs/excel-schema.md`。
 
-| 受け渡し | 形式 | 場所 |
-|---|---|---|
-| 計画 → ケース | Excel `Test cases` シート | `testing-framework/projects/<project>/test-book.xlsx` |
-| ケース → データ | Markdown / YAML(補助) | `testing-framework/projects/<project>/data.md` |
-| ケース → 自動コード | TypeScript/JavaScript | `testing-framework/projects/<project>/automation/` |
-| 実行 → 結果 | 同 Excel の結果列に追記(必要なら別 run シート複製) | `testing-framework/projects/<project>/test-book.xlsx` |
-| 失敗 → バグ | 同 Excel `Bug report` シートに追記 | `testing-framework/projects/<project>/test-book.xlsx` |
+| 受け渡し | 形式 | 場所 | 列(該当シート) |
+|---|---|---|---|
+| 計画 → ケース | Excel `テストケース` シート | `testing-framework/projects/<project>/test-book.xlsx` | A〜H 列(`シナリオ#` 〜 `参考資料`)|
+| ケース → データ | Markdown / YAML(補助) | `testing-framework/projects/<project>/data.md` | — |
+| ケース → 自動コード | TypeScript/JavaScript | `testing-framework/projects/<project>/automation/` | — |
+| 実施 → 結果 | 同 Excel の `テストケース` シートに追記 | (同上) | I〜M 列(`担当者1` 〜 `コメント`)|
+| 失敗 → バグ | 同 Excel `バグレポート` シートに追記 | (同上) | A〜H 列全列 |
+| 相互参照 | テストケース `コメント` 列に Bug ID を書き込み | (同上) | `テストケース.コメント` ←→ `バグレポート.バグID` |
 
 **プロジェクト単位の隔離**: 汎用フレームワークのため `projects/<project-name>/` 配下に各案件を閉じ込める。横断比較が必要な集計は将来検討。
 
@@ -284,11 +287,9 @@ Phase 5: 実プロジェクト適用
 
 ### 6.2 実装着手前に必要なアクション
 
-- [ ] **Excel テンプレートの取り込み**: 以下のいずれかが必要(サンドボックスは Windows ローカルパスを直接読めないため)
-  - **案 A**: ユーザーが `testing-framework/templates/test-book-template.xlsx` にコミットする
-  - **案 B**: テンプレートのシート構成・列名・サンプル行を本チャットに貼り付け、こちらで再現する
-  - **案 C**: 別環境(Windows Claude Code Desktop)からブランチに直接コミットする
-- [ ] **英→日 列対訳の確定**: Excel の英語列名を日本語化する際の用語統一(例: "Test Case ID" → 「テストケース ID」、"Steps" → 「手順」など)。`docs/excel-schema.md` で確定する
+- [x] **Excel テンプレートの取り込み**: GitHub Web UI 経由で `templates/Test cases & Bug report.xlsx`(原本・英語、約 15 MB)をコミット済み
+- [x] **英→日 列対訳の確定**: `docs/excel-schema.md` に確定済み
+- [x] **日本語版テンプレ生成**: `templates/test-book-template-ja.xlsx`(空テンプレ、データ検証付き、約 12 KB)生成済み
 
 ### 6.3 設計内で要決定(実装段階で再確認)
 
@@ -320,10 +321,10 @@ Phase 5: 実プロジェクト適用
 
 ## 8. このドキュメントの位置付け
 
-本ドキュメントは **設計フェーズの成果物**。v0.2 時点で 4 つの主要未決事項は解消済み。実装着手の残条件:
+本ドキュメントは **設計フェーズの成果物**。v0.3 時点で実装の前提はすべて整っている:
 
-1. ✅ ユーザーがロール構成・ワークフローに合意(暗黙合意済み)
-2. ⏳ Excel テンプレートを repo に取り込み(§6.2 のいずれかの案)
+1. ✅ ユーザーがロール構成・ワークフローに合意
+2. ✅ Excel テンプレ取り込み・スキーマ確定・日本語版生成
 3. ✅ 4 つの方針確定済み(汎用化、Excel 一元、GitHub issue なし、GitHub Actions)
 
-Excel テンプレートが repo に入ったら Phase 2(コアロール 3 つ実装)から着手する。
+**Phase 2 着手中**: コアロール 3 つ(system-architect / test-planner / liff-reviewer)を実装。
