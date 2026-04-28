@@ -22,7 +22,25 @@
 5. **LIFF 特化 × 汎用フレームワーク**: 複数の LIFF/ミニアプリ案件で使い回す前提で、プロジェクト単位にディレクトリを切る
 6. **運用言語は日本語**: テンプレート原本は英語だが、実運用時の記載・出力は日本語に変換して使う
 
-### 1.2 「LIFF 特化」が要求する独自テスト観点
+### 1.2 実行環境とファイル運用
+
+**前提**: 日常運用は **Claude Code Desktop(Windows)**。Web/Remote(Linux サンドボックス)はローカルファイルが見えないため、実プロジェクト適用には不向き。
+
+#### git 管理 / 非管理 の境界
+
+| 区分 | 例 | 理由 |
+|---|---|---|
+| git 管理 | スキル / 設計 / Excel テンプレ(空)/ 案件 test-book.xlsx / 自動テストコード / 補助メモ | 履歴・複数環境配布・チーム共有のため |
+| **gitignore**(`projects/<name>/specs/`)| 仕様書 (Word/PDF) / ワイヤーフレーム / Figma エクスポート / 画面キャプチャ | 機密性・容量・更新頻度の観点で git に上げない方が運用が楽 |
+
+ユーザーは仕様書を以下のいずれかで Claude に渡す:
+
+1. **コピー**: `projects/<name>/specs/` 配下に置く(gitignore 対象)
+2. **絶対パス参照**: OneDrive/Desktop の絶対パスを Claude に直接指定
+
+スキル側はどちらにも対応する(Read tool に絶対パス・相対パスのどちらを渡しても良い)。
+
+### 1.3 「LIFF 特化」が要求する独自テスト観点
 
 設計の前提として、LIFF/ミニアプリで漏れやすい観点を最初から組み込む:
 
@@ -232,9 +250,10 @@ testing-framework/
 │  └─ test-book-template-ja.xlsx    # 日本語化版(運用時に使用)
 ├─ projects/                        # プロジェクト別作業領域
 │  └─ <project-name>/
-│     ├─ test-book.xlsx             # ケース + 結果 + バグを一元管理
-│     ├─ data.md                    # テストデータ補助メモ
-│     └─ automation/                # 自動テストコード(Playwright/Vitest)
+│     ├─ test-book.xlsx             # ケース + 結果 + バグを一元管理(git 管理)
+│     ├─ data.md                    # テストデータ補助メモ(git 管理)
+│     ├─ automation/                # 自動テストコード Playwright/Vitest(git 管理)
+│     └─ specs/                     # 仕様書・ワイヤーフレーム ★ gitignored
 └─ .github/
    └─ workflows/                    # GitHub Actions(自動テスト CI)
 ```

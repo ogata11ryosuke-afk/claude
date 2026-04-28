@@ -21,7 +21,11 @@ LIFF/ミニアプリ案件のテスト計画から実施までを統括する。
 3. 対象プロジェクトの既存ファイル確認:
    - `projects/<project>/test-book.xlsx` の有無
    - `projects/<project>/data.md` の有無
-   - 案件特有のメモ・仕様書
+   - `projects/<project>/specs/` の中身(仕様書・ワイヤーフレーム。**gitignored**)
+4. **仕様書の所在確認**: ユーザーから明示的に渡されていなければ、以下を選んで確認:
+   - 「`projects/<project>/specs/` に仕様書を置きましたか?」
+   - 「OneDrive/Desktop の絶対パス(例: `C:\Users\...\spec.pdf`)で渡しますか?」
+   - **絶対パス渡しは Claude Code Desktop でのみ動作**(Web/Remote サンドボックスは Windows パスを読めない)。環境を確認
 
 ### Step 2: イシューの定式化
 

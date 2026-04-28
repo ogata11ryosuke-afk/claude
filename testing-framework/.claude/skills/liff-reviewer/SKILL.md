@@ -113,6 +113,24 @@ test-planner が一般 Web 観点で起こしたケース一覧に、**LIFF / �
 
 ## 標準ワークフロー
 
+### Step 0: 案件特性の把握
+
+LIFF アプリ仕様(LIFF ID、scope、size、permanent link、対象 OS/LINE バージョン等)を以下から確認:
+
+1. **`projects/<project>/specs/`**(gitignored、ユーザーがローカル配置)
+2. **絶対パス指定**(Claude Code Desktop のみ動作)
+3. **LINE Developers Console の設定共有**(スクリーンショットを specs/ に置くか、ユーザーが内容をチャットに貼る)
+
+特に重要な確認項目:
+- LIFF ID
+- LIFF サイズ(`compact` / `tall` / `full`)
+- scope(`profile` / `openid` / `email` / `chat_message.write`)
+- permanent link / endpoint URL
+- ミニアプリかどうか(審査要件の有無)
+- 対象 OS / LINE バージョンの下限
+
+不明があれば test-planner と同じく**不明点リスト**を作りユーザー確認。
+
 ### Step 1: 既存ケースの読み込み
 
 ```python

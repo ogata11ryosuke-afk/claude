@@ -61,9 +61,31 @@ LIFF 固有のセキュリティ・互換性は **liff-reviewer** に引き継�
 
 ### Step 1: 案件理解
 
-1. ユーザーから渡された仕様(URL/PDF/口頭)を Read / WebFetch
-2. 主要画面・主要操作・主要 API を整理
-3. **不明点リスト**を作る(仕様書から読めなかった事項) → ユーザーに確認
+仕様書は以下の優先順位で取得:
+
+1. **`projects/<project>/specs/` 配下**(gitignored、案件ごとにユーザーがローカル配置)
+   - `ls testing-framework/projects/<project>/specs/` で確認
+   - .docx / .pdf / .png / .pptx などをすべて Read
+2. **絶対パス指定**(ユーザーが OneDrive/Desktop の Windows パスで渡してきた場合)
+   - 例: `C:\Users\rogata_w\OneDrive\...\requirements.docx`
+   - **Claude Code Desktop でのみ動作**(サンドボックス環境では失敗)
+3. **URL**: 仕様書がオンラインなら WebFetch
+4. **口頭/チャット**: ユーザーがチャットに直接記述した内容
+
+**不明点リスト**を作る(仕様書から読めなかった事項) → ユーザーに確認
+
+#### Word/PowerPoint の扱い
+
+直接 Read できない場合は変換:
+
+```bash
+# 一時的に展開して中身を読む
+libreoffice --headless --convert-to txt "<path>/*.docx" --outdir /tmp/specs-extracted/
+# または python-docx 使用
+pip install python-docx  # 必要なら
+```
+
+PDF は Read tool が直接対応(`pages: "1-5"` 等で範囲指定可)。
 
 ### Step 2: シナリオ抽出
 

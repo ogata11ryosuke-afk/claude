@@ -34,6 +34,45 @@
 - **デフォルト**: system-architect 主導パイプライン(計画 → レビュー → 実装の 2 パス)
 - **柔軟性**: ユーザーは個別ロールを直接起動することも可能
 
+## 実行環境(重要)
+
+このフレームワークの **日常運用は Claude Code Desktop(Windows)前提**。Claude Code Web/Remote(Linux サンドボックス)では仕様書・ワイヤーフレーム等のローカルファイルが読めないため、実プロジェクトでの利用には Desktop が必要。
+
+| 用途 | 推奨環境 | 理由 |
+|---|---|---|
+| 日常のテスト計画・ケース策定・レビュー | **Claude Code Desktop** | 仕様書を絶対パスで読む必要がある |
+| スキル本体の改修・設計議論 | どちらでも可 | git 管理の `.md` 編集のみ |
+| Notion 連携(将来必要なら) | Desktop のみ | egress 制限のため |
+
+### ファイルの置き場所ルール
+
+| ファイル種別 | 置き場所 | git 管理 | 例 |
+|---|---|---|---|
+| スキル本体 | `testing-framework/.claude/` | ✅ あり | SKILL.md など |
+| 設計ドキュメント | `testing-framework/docs/` | ✅ あり | design.md, excel-schema.md |
+| Excel テンプレート(空) | `testing-framework/templates/` | ✅ あり | test-book-template-ja.xlsx |
+| 案件のテストブック Excel | `testing-framework/projects/<name>/test-book.xlsx` | ✅ あり | 履歴を残したい |
+| **仕様書・ワイヤーフレーム・画面キャプチャ** | `testing-framework/projects/<name>/specs/` | ❌ **gitignored** | Word, PDF, Figma エクスポート |
+| 自動テストコード | `testing-framework/projects/<name>/automation/` | ✅ あり | Playwright/Vitest |
+| 補助メモ | `testing-framework/projects/<name>/data.md` 等 | ✅ あり | テストデータ仕様 |
+
+### 仕様書の渡し方(2 パターン)
+
+**パターン 1: project 配下にローカルコピー**
+```
+C:\<repo>\testing-framework\projects\<案件名>\specs\
+  ├─ requirements.docx
+  ├─ wireframe.pdf
+  └─ screen-flow.png
+```
+`specs/` は `.gitignore` で無視されるため push されない。Claude にはこの相対パスで参照させる。
+
+**パターン 2: OneDrive/Desktop の絶対パスを直接指定**
+ユーザーが Claude に対し:
+> 「`C:\Users\rogata_w\OneDrive\...\spec.pdf` を読んで計画を作って」
+
+と絶対パスを渡せば、Desktop の Claude は直接読める。コピー不要。Phase 2 のスキル群もこの形式に対応している。
+
 ## 残課題
 
 設計フェーズの未確定項目は `@docs/design.md` の「残課題・確認事項」セクション参照。実装着手前にユーザー確認が必要。

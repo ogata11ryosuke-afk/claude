@@ -10,3 +10,10 @@ credentials.json
 # General
 .DS_Store
 *.log
+
+# Testing framework: project-local specs/wireframes (kept on user's local machine)
+testing-framework/projects/*/specs/
+testing-framework/projects/*/specs-local/
+# Excel temp/lock files
+~$*.xlsx
+*.xlsx#
