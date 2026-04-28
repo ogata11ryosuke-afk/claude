@@ -8,10 +8,12 @@
 
 ## スコープ
 
-- **対象システム**: LINE LIFF アプリ / LINE ミニアプリ(専用設計)
+- **対象システム**: LINE LIFF アプリ / LINE ミニアプリ(**汎用フレームワーク**: 複数案件で使い回す)
 - **テスト範囲**: 機能テスト + LIFF 固有レビュー + セキュリティ(LIFF 観点) + 自動化 E2E + バグ管理
 - **テスト実施形態**: ハイブリッド(クリティカルパスは自動化、探索的・UI 確認は手動)
-- **成果物フォーマット**: Excel(別途テンプレート提供予定) + Markdown 補助
+- **成果物フォーマット**: **Excel 一元管理**(`Test cases & Bug report.xlsx` ベース、運用時は日本語化)+ Markdown 補助
+- **CI**: GitHub Actions(`.github/workflows/`)
+- **バグ管理**: 当面は Excel 内 `Bug report` シートに集約(GitHub issue 連携は将来検討)
 
 ## ロール構成(7 ロール)
 
@@ -38,4 +40,5 @@
 
 ## 更新履歴
 
-- 2026-04-28 初版設計(`docs/design.md`)
+- 2026-04-28 初版設計(`docs/design.md` v0.1)
+- 2026-04-28 4 主要未決事項解消(汎用化・Excel 一元・GitHub issue なし・GitHub Actions)→ `docs/design.md` v0.2

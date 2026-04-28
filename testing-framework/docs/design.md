@@ -1,8 +1,9 @@
 # テストフレームワーク設計書
 
-**対象**: LINE LIFF / LINE ミニアプリ
-**バージョン**: v0.1(設計フェーズ)
+**対象**: LINE LIFF / LINE ミニアプリ(複数アプリで使い回す**汎用**フレームワーク)
+**バージョン**: v0.2(設計フェーズ・未決事項解消)
 **作成日**: 2026-04-28
+**更新**: 2026-04-28 ユーザー回答反映(汎用化、Excel 一元化、GitHub Actions、運用言語=日本語)
 
 ---
 
@@ -15,8 +16,9 @@
    - **Skill**: 助言・計画策定・レビュー(読み取り中心、メインコンテキストで動作)
    - **Subagent**: 実行系・並列性が必要・独立コンテキストが欲しい役割
 3. **両モード対応**: アーキテクト主導パイプライン と 個別ロール直接起動 のどちらでも動作
-4. **Excel 中心 + Markdown 補助**: テストケースは Excel(ユーザー提供テンプレート)、設計議論や軽量メモは Markdown
-5. **LIFF 特化**: 一般 Web の知識を前提に、LIFF/ミニアプリ固有事項を別レイヤで重ねる
+4. **Excel 一元管理**: テストケースもバグレポートも **同一 Excel** に記録(ユーザー提供テンプレート `Test cases & Bug report.xlsx` 準拠)。設計議論や軽量メモのみ Markdown
+5. **LIFF 特化 × 汎用フレームワーク**: 複数の LIFF/ミニアプリ案件で使い回す前提で、プロジェクト単位にディレクトリを切る
+6. **運用言語は日本語**: テンプレート原本は英語だが、実運用時の記載・出力は日本語に変換して使う
 
 ### 1.2 「LIFF 特化」が要求する独自テスト観点
 
@@ -145,9 +147,10 @@
 | 起動条件 | tester からの失敗報告を受けて自動起動、または「不具合まとめて」「issue 化して」 |
 | 主責務 | 不具合の重大度・優先度判定、再現手順の整形、GitHub issue 起票案、回帰防止チェック |
 | 入力 | tester の失敗ケース、エビデンス |
-| 出力 | バグレポート(タイトル・概要・再現手順・期待/実際・環境・優先度・関連ケース ID)、GitHub issue ドラフト |
+| 出力 | **同一 Excel(Bug report シート)** へのバグエントリ追記。タイトル・概要・再現手順・期待/実際・環境・優先度・関連ケース ID を埋める |
 | 優先度モデル | Severity(S1〜S4)× Priority(P0〜P3)。LIFF 起動不能や PII 漏洩は即 S1/P0 |
-| 使用ツール | Read, Grep, mcp__github__issue_write(明示許可後のみ) |
+| 使用ツール | Read, Edit(Excel 操作ライブラリ経由), Grep |
+| GitHub issue 連携 | **当面なし**(Phase 2 時点では Excel 一元管理。将来要望が出たら追加検討) |
 
 ---
 
@@ -187,13 +190,17 @@
 
 ### 3.3 ロール間データ受け渡し形式
 
+**Excel 1 ファイル一元管理**:同一 Excel ファイル内に複数シートを持ち、ケース/結果/バグを束ねる(テンプレート受領後に確定)。
+
 | 受け渡し | 形式 | 場所 |
 |---|---|---|
-| 計画 → ケース | Excel(ユーザー提供テンプレ) | `testing-framework/cases/<project>/cases.xlsx` |
-| ケース → データ | Markdown / YAML | `testing-framework/cases/<project>/data.md` |
-| ケース → 自動コード | TypeScript/JavaScript | `testing-framework/automation/<project>/` |
-| 実行 → 結果 | Excel(同テンプレに結果列追記) | `testing-framework/results/<project>/<run-id>.xlsx` |
-| 失敗 → バグレポート | Markdown(GitHub issue 互換) | `testing-framework/bugs/<project>/<issue-id>.md` |
+| 計画 → ケース | Excel `Test cases` シート | `testing-framework/projects/<project>/test-book.xlsx` |
+| ケース → データ | Markdown / YAML(補助) | `testing-framework/projects/<project>/data.md` |
+| ケース → 自動コード | TypeScript/JavaScript | `testing-framework/projects/<project>/automation/` |
+| 実行 → 結果 | 同 Excel の結果列に追記(必要なら別 run シート複製) | `testing-framework/projects/<project>/test-book.xlsx` |
+| 失敗 → バグ | 同 Excel `Bug report` シートに追記 | `testing-framework/projects/<project>/test-book.xlsx` |
+
+**プロジェクト単位の隔離**: 汎用フレームワークのため `projects/<project-name>/` 配下に各案件を閉じ込める。横断比較が必要な集計は将来検討。
 
 ---
 
@@ -205,6 +212,7 @@ testing-framework/
 ├─ docs/
 │  ├─ design.md                     # 本ファイル
 │  ├─ liff-checklist.md             # (後続) LIFF レビュー観点詳細
+│  ├─ excel-schema.md               # (後続) ユーザー提供テンプレートの列定義(英→日訳含む)
 │  └─ workflow-examples.md          # (後続) ワークフロー実例
 ├─ .claude/
 │  ├─ skills/
@@ -217,11 +225,15 @@ testing-framework/
 │     ├─ automation-engineer.md
 │     └─ tester.md
 ├─ templates/
-│  └─ test-case-template.xlsx       # ★ ユーザーから別途提供
-├─ cases/                           # プロジェクト別ケース
-├─ automation/                      # 自動テストコード
-├─ results/                         # 実行結果
-└─ bugs/                            # バグレポート
+│  ├─ test-book-template.xlsx       # ★ ユーザー提供原本(英語)
+│  └─ test-book-template-ja.xlsx    # 日本語化版(運用時に使用)
+├─ projects/                        # プロジェクト別作業領域
+│  └─ <project-name>/
+│     ├─ test-book.xlsx             # ケース + 結果 + バグを一元管理
+│     ├─ data.md                    # テストデータ補助メモ
+│     └─ automation/                # 自動テストコード(Playwright/Vitest)
+└─ .github/
+   └─ workflows/                    # GitHub Actions(自動テスト CI)
 ```
 
 **注**: `.claude/skills/` と `.claude/agents/` を testing-framework サブディレクトリに置くか、リポジトリルートの `.claude/` に併設するかは実装段階で再確認(下記「残課題」参照)。
@@ -260,21 +272,30 @@ Phase 5: 実プロジェクト適用
 
 ---
 
-## 6. 残課題・確認事項(実装着手前に解消したい)
+## 6. 残課題・確認事項
 
-### 6.1 ユーザー確認待ち
+### 6.1 ユーザー回答済み(2026-04-28)
 
-- [ ] **Excel テンプレートの受領**: ケース ID 採番規則、必須列(前提/手順/期待/優先度等)、結果記録列の場所、複数シート構成か単一シートか
-- [ ] **対象 LIFF アプリの想定**: 単一アプリ専用か、複数アプリで使い回す汎用フレームワークか(後者なら project スコープ設計が必要)
-- [ ] **GitHub issue 連携の有無**: bug-triager が直接 issue を立てるか、ドラフトのみ生成してユーザーが手動起票するか
-- [ ] **CI 環境**: GitHub Actions 想定で良いか。実行環境(Linux runner / ブラウザ種類)の想定
+- [x] **Excel テンプレート**: `Test cases & Bug report.xlsx`(英語原本)を提供。**運用時は日本語化**して使用 → `templates/test-book-template-ja.xlsx` を作成する
+  - サンドボックス環境からは Windows ローカルパスを直接読めないため、ファイル中身の取り込みは別途必要(下記 6.2 参照)
+- [x] **対象 LIFF アプリ**: **汎用フレームワーク**(複数アプリで使い回す)。`projects/<project-name>/` 配下にプロジェクトを隔離
+- [x] **GitHub issue 連携**: **当面なし**。バグレポートは Excel の `Bug report` シートに記載
+- [x] **CI 環境**: **GitHub Actions** 採用。`.github/workflows/` 配下にワークフロー定義
 
-### 6.2 設計内で要決定
+### 6.2 実装着手前に必要なアクション
+
+- [ ] **Excel テンプレートの取り込み**: 以下のいずれかが必要(サンドボックスは Windows ローカルパスを直接読めないため)
+  - **案 A**: ユーザーが `testing-framework/templates/test-book-template.xlsx` にコミットする
+  - **案 B**: テンプレートのシート構成・列名・サンプル行を本チャットに貼り付け、こちらで再現する
+  - **案 C**: 別環境(Windows Claude Code Desktop)からブランチに直接コミットする
+- [ ] **英→日 列対訳の確定**: Excel の英語列名を日本語化する際の用語統一(例: "Test Case ID" → 「テストケース ID」、"Steps" → 「手順」など)。`docs/excel-schema.md` で確定する
+
+### 6.3 設計内で要決定(実装段階で再確認)
 
 - [ ] **`.claude/` 配置場所**: testing-framework 配下に閉じるか、ルート `.claude/` に併設するか
   - サブディレクトリ案: 水泳プロジェクトと完全分離、cd して起動するイメージ
   - ルート併設案: 一つの Claude セッションから両ドメインに行き来できるが、自動起動条件で混線リスク
-- [ ] **Excel 操作の実装手段**: Python(`openpyxl`)/Node(`exceljs`) などライブラリ選定。tester / test-planner で Excel 読み書きが必要
+- [ ] **Excel 操作の実装手段**: Python(`openpyxl`)/Node(`exceljs`) などライブラリ選定。tester / test-planner / bug-triager で Excel 読み書きが必要
 - [ ] **LIFF モック戦略**: `@line/liff-mock` 利用か独自モックか。automation-engineer の前提に影響
 
 ### 6.3 将来検討事項
@@ -299,10 +320,10 @@ Phase 5: 実プロジェクト適用
 
 ## 8. このドキュメントの位置付け
 
-本ドキュメントは **設計フェーズの成果物**。実装着手は以下の条件が揃ってから:
+本ドキュメントは **設計フェーズの成果物**。v0.2 時点で 4 つの主要未決事項は解消済み。実装着手の残条件:
 
-1. ユーザーがロール構成・ワークフローに合意
-2. Excel テンプレート受領
-3. 「6.1 ユーザー確認待ち」項目の回答取得
+1. ✅ ユーザーがロール構成・ワークフローに合意(暗黙合意済み)
+2. ⏳ Excel テンプレートを repo に取り込み(§6.2 のいずれかの案)
+3. ✅ 4 つの方針確定済み(汎用化、Excel 一元、GitHub issue なし、GitHub Actions)
 
-合意後、Phase 2(コアロール 3 つ実装)から着手する。
+Excel テンプレートが repo に入ったら Phase 2(コアロール 3 つ実装)から着手する。
