@@ -114,9 +114,12 @@ CLAUDE.md (司令塔)
 │    ├─ meet-manager         大会エントリー・テーパー(未実装)
 │    └─ log-keeper           Notion読み書き・履歴管理・コンテキスト制御
 │
-└─ ⑤ 分析
-     ├─ performance-analyst  TT進捗・FINA Points・週次/月次レビュー・示唆生成
-     └─ memo-curator         Training DB メモ本文の分類・サマリ生成・反復パターン検出
+├─ ⑤ 分析
+│    ├─ performance-analyst  TT進捗・FINA Points・週次/月次レビュー・示唆生成
+│    └─ memo-curator         Training DB メモ本文の分類・サマリ生成・反復パターン検出
+│
+└─ ⑥ 研究
+     └─ knowledge-scout      最新研究・コーチング情報のスカウトと既存スキルへの更新提案
 ```
 
 ### データバックエンド
@@ -140,9 +143,10 @@ CLAUDE.md (司令塔)
 | 6 | **log-keeper** | ✅ 実装済(Notion版) | Notion 書き込み・コンテキスト制御の基盤 |
 | 7 | **performance-analyst** | ✅ 実装済(Notion版) | 履歴から現状評価・示唆生成 |
 | 8 | **memo-curator** | ✅ 実装済(Notion版) | メモのクラスタリング・反復パターン検出 |
-| 9 | **video-analyst** | 未実装 | モダン理論との対比分析(動画準備後) |
-| 10 | **meet-manager** | 未実装 | 大会決定後に起動 |
-| 11-13 | 残り3スキル(race-strategist / nutrition-chef / recovery-specialist / mind-coach) | 未実装 | 月1個ペースで追加 |
+| 9 | **knowledge-scout** | ✅ 実装済 | 最新研究の継続スカウトと既存スキルへの更新提案(WebSearch/WebFetch ベース) |
+| 10 | **video-analyst** | 未実装 | モダン理論との対比分析(動画準備後) |
+| 11 | **meet-manager** | 未実装 | 大会決定後に起動 |
+| 12-14 | 残り3スキル(race-strategist / nutrition-chef / recovery-specialist / mind-coach) | 未実装 | 月1個ペースで追加 |
 
 **ルール**: 一度に1スキルだけ作り、1〜2週間使って安定させてから次に進む。
 
@@ -172,6 +176,10 @@ CLAUDE.md (司令塔)
 | 「メモサマリ作って」 | **memo-curator** | log-keeper |
 | 「メモを振り返り」 | memo-curator | log-keeper |
 | 「反復パターン抽出」 | memo-curator | performance-analyst |
+| 「最新研究は?」「論文ある?」 | **knowledge-scout** | 該当領域のスキル |
+| 「Peatyの新しい動画」「フォーム最新トレンド」 | knowledge-scout | stroke-technician |
+| 「肩リハの新知見」 | knowledge-scout | injury-guardian, mobility-therapist |
+| 「saved-interests 見直し」 | knowledge-scout | — |
 
 ---
 
@@ -223,3 +231,4 @@ Sheets連携でコンテキスト爆発を起こさないための原則:
 - 2026-04-18 第3回: **3-17歳全国レベル・14年競技歴・1ヶ月前復帰・機器使用不可・モダンフォーム優先方針** を反映
 - 2026-04-20 **log-keeper / performance-analyst 追加**、コンテキスト管理原則セクション新設、スキル構成図を⑤分析・⑥運用に再編
 - 2026-04-24 **データバックエンドを Notion に全面移行**、`memo-curator` 新規追加、log-keeper / performance-analyst を Notion 版にリファクタ。Notion 操作は Windows Claude Code Desktop 限定
+- 2026-04-24 **`knowledge-scout` 新規追加**(⑥研究レイヤー新設)。最新研究・コーチング情報を本人状況に絞って継続スカウトし、4ゲートフィルタ後に既存スキルへ更新提案するパイプラインを構築
